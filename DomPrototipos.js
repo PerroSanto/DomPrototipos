@@ -1,6 +1,24 @@
+/*
+
+En este TP vamos a trabajar con Prototipos en JavaScript.
+En este lenguaje, las funciones pueden (usadas de forma adecuada)
+ser constructores de objetos. Para que esto ocurra, una función
+se invoca como new <nombre de la función>(<argumentos>), lo cual
+describirá el nuevo objeto construido.
+La función en si, puede asignar slots del nuevo elemento creado
+(haciendo referencia a this), y puede además hacer cualquier otra
+cosa que se considere adecuada.
+
+En este caso, DomElement es una función que nos permitirá crear
+objetos, la cual se define a continuación:
+*/
+
 /**
  * A DomElement is the main constructor for objects that represent
  * the Dom hierarchy.
+ *
+ * @param type The type of the dom element (e.g. 'div', 'p', etc.)
+ * @param childrenDefinition The childrens of this current element.
  */
 function DomElement(type, childrenDefinition) {
     this.type = type;
@@ -14,6 +32,28 @@ function DomElement(type, childrenDefinition) {
         this.children.push(newElement);
     }
 }
+
+/*
+ Los objetos que vamos a crear representan los elementos
+ del DOM, hipoteticamente, pero no se espera que ejecute
+ este código en un navegador ni nada parecido. Estaremos
+ simulando parcialmente la forma en que un browser trabaja
+ "por atrás", esa es la idea del TP.
+
+ Así, cada elemento, tiene un tipo y una lista de hijos
+ (ya que las etiquetas del DOM se anidan).
+
+ En JS, todo objeto tiene un prototipo, identificado en el
+ slot __proto__. En el caso de las funciones, hay un atributo
+ especial llamado prototype, que será el objeto que actúa de
+ prototipo para todo objeto que sea creado con esa función.
+
+ Por ejemplo, si hacemos DomElement.prototype, estamos hablando
+ del prototipo de cualquier objeto creado con new DomElement(...)
+
+ Podemos modificar de diversas formas ese objeto, como se
+ hace a continuación.
+*/
 
 /**
  * All Dom elements know how to print themselves
@@ -40,6 +80,16 @@ DomElement.prototype.toString = function(indent) {
     return result;
 }
 
+
+/*
+Ahora vamos a definir un objeto que simula un DOM.
+Podríamos pensarlo como lo que lee el browser cuando analiza
+el HTML. Nosotros lo vamos a definir como un objeto con 2
+partes, type y children.
+Podemos usar esos elementos para construir un DomElement
+raíz, y donde los hijos serán DomElements también, ya que el
+constructor de dicha función se encarga de eso.
+*/
 
 var definition = {
     type: 'html',
@@ -87,7 +137,11 @@ var definition = {
 var dom = new DomElement(definition.type, definition.children);
 
 /*
-Podemos probar añadir unos estilos y ver que sucede
+Ahora vamos a querer agregar estílos a los elementos del DOM,
+simulando lo que hace el Browser cuando, luego de analizar el DOM,
+les agrega los estilos tomados del CSS.
+
+Agreguemos algunos estilos a diversos elementos.
 */
 
 dom.children[1].styles = {
@@ -103,10 +157,16 @@ dom.children[1].children[0].children[0].styles = {
 console.log(' ')
 console.log(dom.toString());
 
+/*
+Ahora vamos a empezar a realizar diversas acciones sobre etos
+elementos.
+*/
+
 /**************** PUNTO 1 ******************************/
 
 /*
-Queremos poder contar con una definición de estilos como a la siguiente.
+Queremos poder contar con una definición de estilos como a la
+siguiente.
 */
 var styles = {
     'body section': {
@@ -126,31 +186,60 @@ var styles = {
 };
 
 /*
+Estos estilos simulan lo que se leería de un CSS. Y lo que queremos es
+poder aplicar todos estilos a nuestro DOM.
+
 El objetivo, es poder aplicar esos estilos a cada elemento del dom
 según indique la regla asociada.
+
 Ej. si la regla es "h1", entonces el estilo se aplica a todos los elementos
 de tipo h1, pero si es "body h1" entonces se aplica a los h1 que están
 dentro de body.
 
-Más aún, los estilos se heredan según jerarquía. Si por ejemplo, si
-"body" tiene color "red", entonces todos los hijos de body también
-tendrán color "red", salvo que haya una regla que indique lo contrario.
+Una característica importante de los estilos es que se heredan según jerarquía.
+Si por ejemplo, "body" tiene como estilo color "red", entonces todos los hijos
+de body también tendrán color "red", sin necesidad de agregar ese atributo a cada
+uno de los hijos.
 
-Se pide entonces que implemente el comportamiento de getStyle
-para que se le pueda preguntar a cualquier elemento del dom por sus
-estilos completos, que incluyen tanto los declarados como los heredados.
+Por ej. pensemos el siguiente grupo de nodos en el dom
 
-Luego cree un metodo "viewStyleHierarchy" que imprima todos los nodos
-con sus estilos completos (los propios y heredados), de forma similar a
-toString (pero con tooooooodos los estilos).
+Node html {}
+  Node head {}
+  Node body {background:red, color:blue}
+    Node div {}
+      Node div {size:17, color:green}
+        Node h1 {}
+
+Si bien h1 no tiene ningún estilo directamente asociado, sus "verdaderos"
+estilos son aquellos que surjen de heredar de sus padres.
+Entonces h1 tiene los estilos {background:red, size:17, color:green}. El
+color es verde ya que si un hijo tiene un estilo que tenía el padre,
+lo sobreescribe, de forma similar al overriding.
+
+Entonces haremos primero las siguientes cosas:
+a) Agregaremos el método a todo nodo del dom, addStyles, que dada
+una definición de estilos que representa un css, asigna los estilos
+de esa definición a los correspondientes nodos del DOM.
+
+b) Luego implemente para todo nodo el método getFullStyle que
+describe todos los estilos que tiene un nodo (que incluyen los
+propios y los heredados).
+
+c) Implemente para todo nodo el método viewStyleHierarchy, que
+funciona de forma similar a toString, pero en donde se muestran
+absolutamente todos los estilos, incluyendo los heredados, y
+no solo aquellos que tienen asociados.
 */
 
 /**************** PUNTO 2 ******************************/
 
 /*
-Queremos agregar la idea de eventos, para que distintos elementos
-del DOM puedan reaccionar ante diversos eventos.
-Cada elemento del dom debe entender tres metodos más:
+Los elementos del DOM en un navegador pueden reaccionar a eventos
+que el usuario realiza sobre ellos. Vamos a simular ese proceso.
+
+Para que distintos elementos del DOM puedan reaccionar ante
+diversos eventos. Cada elemento del dom debe entender tres
+metodos más:
 
 * on(nombreDeEvento, handler)
 * off(nombreDeEvento)
@@ -177,6 +266,9 @@ dom.children[1].children[0].children[0].on('click', function() {
     return true;
 })
 
+Esto puede llegar a ser un problema, ya que hay que analizar quién es this,
+según el contexto de ejecución. Ojo.
+
 Por otro lado, cuando se hace el handling de un evento, este realiza
 el proceso de bubbling-up, es decir, todo padre que también sepa manejar
 el evento del mismo nombre debe activar el evento.
@@ -184,9 +276,10 @@ el evento del mismo nombre debe activar el evento.
 Por ejemplo, si activamos 'click' en dom.children[1].children[0].children[0]
 y dom.children[1] también sabe manejar 'click', entonces, luego de ejecutar
 el 'click' para dom.children[1].children[0].children[0], se deberá hacer el
-bubbling-up para que dom.children[1] maneje 'click'. Hay una excepción, sin
-embargo. Cuando el handler de un hijo describe falso luego de ejecutar,
-el bubbling-up se detiene.
+bubbling-up para que dom.children[1] maneje 'click'.
+
+Hay una excepción, sin embargo. Cuando el handler de un hijo describe falso
+luego de ejecutar, el bubbling-up se detiene.
 
 off por su parte, desactiva el handler asociado a un evento.
 
@@ -199,23 +292,45 @@ del dom puedan tener este comportamiento.
 
 /*
 Queremos poder mostrar los nodos del dom de forma bonita
-en la terminal, mediante el metodo display.
+en la terminal, mediante el metodo display. Es decir,
+otra especie de toString para los nodos.
 
 dom.display()
 
 No todo nodo es visible sin embargo. Solo los elementos del body
 deben mostrarse en este caso, ya que el head y html son solo
 contenedores. Lo mismo ocurre con div, section y aside, que son
-elementos invisibles.
+elementos contenedores invisibles.
 
 Así, en este caso, solo vamos a mostrar los elementos h1 y p.
 Pero ¿Qué mostramos de ellos? Para hacer la cosa más divertida, vamos
-a agregar un atributo "contents" que nos permita agregar un texto
-a esos elementos como contenido. Ese texto será el que se muestre
-cuando llamemos a display.
+a agregar un atributo "contents" a cualquier nodo, que nos permita
+agregar un texto a esos elementos como contenido. Ese texto será el
+que se muestre cuando llamemos a display.
 
 Más aún, cada elemento se muestra de forma distinta según su tipo.
-p muestra contents tal cual, pero h1 lo muestra todo en mayúscula, siempre.
+p muestra contents tal cual, pero h1 lo muestra todo en mayúscula,
+siempre.
+
 Además el color del texto y del fondo depende del estilo del elemento,
+por lo que vamos a mostrarlo en color en la consola.
 (Ver https://stackoverflow.com/questions/9781218/how-to-change-node-jss-console-font-color)
+
+Por ejemplo,
+
+Node html {}
+  Node head {}
+  Node body {background:red, color:blue}
+    Node div {}
+      Node div {size:17, color:green}
+        Node h1 contents="Titulo 1" {}
+        Node p contents="Hola mundo" {}
+        Node p contents="Esto es un texto" {color: "red"}
+
+Mostraría:
+
+TITULO 1
+Hola mundo
+Esto es un texto (en rojo)
 */
+
