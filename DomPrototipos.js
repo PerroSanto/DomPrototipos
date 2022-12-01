@@ -221,7 +221,7 @@ a) Agregaremos el método a todo nodo del dom, addStyles, que dada
 una definición de estilos que representa un css, asigna los estilos
 de esa definición a los correspondientes nodos del DOM.
 
-b) Luego implemente para todo nodo el método getFullStyle que
+b) Luego implemente para todo nodo el método GetStyle que
 describe todos los estilos que tiene un nodo (que incluyen los
 propios y los heredados).
 
@@ -230,6 +230,40 @@ funciona de forma similar a toString, pero en donde se muestran
 absolutamente todos los estilos, incluyendo los heredados, y
 no solo aquellos que tienen asociados.
 */
+
+function addStyles(dom, styles) {
+    for (let index = 0; index < dom.children.length; index++) {
+      var element = dom.children[index];
+      element.styles = { ...element.styles, ...dom.styles };
+      if (styles[element.type]) {
+        element.styles = { ...element.styles, ...styles[element.type] };
+      }
+      if (styles[dom.type + " " + element.type]) {
+        dom.styles = { ...element.styles, ...styles[element.type] };
+      }
+      addStyles(element, styles);
+    }
+}
+addStyles(dom, styles);
+
+function getStyle(dom) {
+    var result = {};
+    for (let index = 0; index < dom.children.length; index++) {
+      var element = dom.children[index];
+      result[element.type] = { ...element.styles, ...dom.styles };
+      result = { ...result, ...getStyle(element) };
+    }
+    return result;
+} 
+
+function viewStyleHierarchy(dom) {
+    for (let index = 0; index < dom.children.length; index++) {
+      console.log(dom.children[index].type, dom.children[index].styles);
+      var element = dom.children[index];
+      viewStyleHierarchy(element);
+    }
+  }
+  viewStyleHierarchy(dom);
 
 /**************** PUNTO 2 ******************************/
 
