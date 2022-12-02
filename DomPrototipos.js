@@ -63,7 +63,7 @@ objetos, la cual se define a continuación:
 /**
  * All Dom elements know how to print themselves
  */
-DomElement.prototype.toString = function(indent) {
+ DomElement.prototype.toString = function(indent) {
     if (!indent) {
         indent = 0;
     }
@@ -107,30 +107,39 @@ var definition = {
             children: [{
                 type: 'div',
                 children: [{
-                    type: 'h1'
+                    type: 'h1',
+                    contents: 'Hello World'
                 }, {
-                    type: 'p'
+                    type: 'p',
+                    contents: ''
                 }, {
-                    type: 'p'
+                    type: 'p',
+                    contents: ''
                 }]
             }, {
                 type: 'section',
                 children: [{
-                    type: 'h1'
+                    type: 'h1',
+                    contents: 'Here'
                 }, {
-                    type: 'p'
+                    type: 'p',
+                    contents: 'There'
                 }, {
-                    type: 'p'
+                    type: 'p',
+                    contents: ''
                 }]
             }]
         }, {
             type: 'aside',
             children: [{
-                type: 'h1'
+                type: 'h1',
+                contents: ''
             }, {
-                type: 'p'
+                type: 'p',
+                contents: ''
             }, {
-                type: 'p'
+                type: 'p',
+                contents: 'Are you there?'
             }]
         }]
     }]
@@ -160,7 +169,7 @@ dom.children[1].children[0].children[0].styles = {
 };
 
 //console.log(' ')
-//console.log(dom.toString());
+console.log(dom.toString());
 
 /*
 Ahora vamos a empezar a realizar diversas acciones sobre etos
@@ -193,48 +202,40 @@ var styles = {
 /*
 Estos estilos simulan lo que se leería de un CSS. Y lo que queremos es
 poder aplicar todos estilos a nuestro DOM.
-
 El objetivo, es poder aplicar esos estilos a cada elemento del dom
 según indique la regla asociada.
-
 Ej. si la regla es "h1", entonces el estilo se aplica a todos los elementos
 de tipo h1, pero si es "body h1" entonces se aplica a los h1 que están
 dentro de body.
-
 Una característica importante de los estilos es que se heredan según jerarquía.
 Si por ejemplo, "body" tiene como estilo color "red", entonces todos los hijos
 de body también tendrán color "red", sin necesidad de agregar ese atributo a cada
 uno de los hijos.
-
 Por ej. pensemos el siguiente grupo de nodos en el dom
-
 Node html {}
   Node head {}
   Node body {background:red, color:blue}
     Node div {}
       Node div {size:17, color:green}
         Node h1 {}
-
 Si bien h1 no tiene ningún estilo directamente asociado, sus "verdaderos"
 estilos son aquellos que surjen de heredar de sus padres.
 Entonces h1 tiene los estilos {background:red, size:17, color:green}. El
 color es verde ya que si un hijo tiene un estilo que tenía el padre,
 lo sobreescribe, de forma similar al overriding.
-
 Entonces haremos primero las siguientes cosas:
 a) Agregaremos el método a todo nodo del dom, addStyles, que dada
 una definición de estilos que representa un css, asigna los estilos
 de esa definición a los correspondientes nodos del DOM.
-
-b) Luego implemente para todo nodo el método GetStyle que
+b) Luego implemente para todo nodo el método getFullStyle que
 describe todos los estilos que tiene un nodo (que incluyen los
 propios y los heredados).
-
 c) Implemente para todo nodo el método viewStyleHierarchy, que
 funciona de forma similar a toString, pero en donde se muestran
 absolutamente todos los estilos, incluyendo los heredados, y
 no solo aquellos que tienen asociados.
 */
+
 
 DomElement.prototype.addStyles = function(styles) {
     for(let index = 0; index < this.children.length; index++) {
@@ -267,9 +268,10 @@ DomElement.prototype.viewStyleHierarchy = function() {
         element.viewStyleHierarchy();
     }
 }
-//dom.addStyles(styles);
+dom.addStyles(styles);
 //console.log(dom.toString());
 //dom.viewStyleHierarchy();
+
 
 /**************** PUNTO 2 ******************************/
 
@@ -346,13 +348,14 @@ DomElement.prototype.handle = function(event) {
 
 DomElement.prototype.events = {};
 
+/*
 dom.children[1].children[0].children[0].on('click', function() {
     console.log('Se apretó click en un ' + this.type);
     return true;
 })
 
 dom.children[1].children[0].children[0].handle('click');
-
+*/
 
 /**************** PUNTO 3 ******************************/
 
@@ -400,3 +403,39 @@ Hola mundo
 Esto es un texto (en rojo)
 */
 
+const color = {
+    black: "\x1b[30m",
+    red: "\x1b[31m",
+    green: "\x1b[32m",
+    yellow: "\x1b[33m",
+    blue: "\x1b[34m",
+    magenta: "\x1b[35m",
+    cyan: "\x1b[36m",
+    white: "\x1b[37m",
+    crimson: "\x1b[38m" 
+}
+
+function chageStyle(element){
+    let style = "";
+    if(element.type === "h1" && element.contents !== ""){ 
+        console.log(element.contents.toUpperCase());
+    }
+    if(element.type === "p" && element.contents !== ""){      
+        if(element.styles.color){
+            style += color[element.styles.color];
+        }
+        console.log(style + element.contents);
+    }
+}
+
+DomElement.prototype.display = function() {
+    for(let index = 0; index < this.children.length; index++) {
+        let element = this.children[index];
+        if(element.type === "h1" || element.type === "p"){
+            chageStyle(element);
+        }
+        element.display()
+    }
+}
+
+dom.display();
