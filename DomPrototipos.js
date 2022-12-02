@@ -20,15 +20,20 @@ objetos, la cual se define a continuación:
  * @param type The type of the dom element (e.g. 'div', 'p', etc.)
  * @param childrenDefinition The childrens of this current element.
  */
-function DomElement(type, childrenDefinition) {
+ function DomElement(type, childrenDefinition) {
     this.type = type;
     this.styles = {};
+    this.eventsOn = {};
+    this.eventsOff = {};
     this.children = [];
 
     for (let index = 0; index < (childrenDefinition || []).length; index++) {
         var definition = childrenDefinition[index];
         var newElement = new DomElement(definition.type, definition.children);
         newElement.__proto__ = this;
+        if(definition.type === 'h1' || definition.type === 'p' && definition.contents !== undefined){
+            newElement.contents = definition.contents;
+        }
         this.children.push(newElement);
     }
 }
@@ -154,8 +159,8 @@ dom.children[1].children[0].children[0].styles = {
     color: 'green'
 };
 
-console.log(' ')
-console.log(dom.toString());
+//console.log(' ')
+//console.log(dom.toString());
 
 /*
 Ahora vamos a empezar a realizar diversas acciones sobre etos
@@ -231,39 +236,40 @@ absolutamente todos los estilos, incluyendo los heredados, y
 no solo aquellos que tienen asociados.
 */
 
-function addStyles(dom, styles) {
-    for (let index = 0; index < dom.children.length; index++) {
-      var element = dom.children[index];
-      element.styles = { ...element.styles, ...dom.styles };
-      if (styles[element.type]) {
-        element.styles = { ...element.styles, ...styles[element.type] };
-      }
-      if (styles[dom.type + " " + element.type]) {
-        dom.styles = { ...element.styles, ...styles[element.type] };
-      }
-      addStyles(element, styles);
+DomElement.prototype.addStyles = function(styles) {
+    for(let index = 0; index < this.children.length; index++) {
+        let element = this.children[index];
+        element.styles = { ...element.styles, ...this.styles };
+        if (styles[element.type] || styles[this.type + ' ' + element.type]) {
+            element.styles = {...element.styles,...styles[element.type]};
+        }
+        element.addStyles(styles);
     }
 }
-addStyles(dom, styles);
 
-function getStyle(dom) {
-    var result = {};
-    for (let index = 0; index < dom.children.length; index++) {
-      var element = dom.children[index];
-      result[element.type] = { ...element.styles, ...dom.styles };
-      result = { ...result, ...getStyle(element) };
+DomElement.prototype.getStyle = function(type) {
+    for (let i = 0; i < this.children.length; i++) {
+        if (this.children[i].type === type && Object.keys(this.children[i].styles).length !== 0) {
+            console.log(this.children[i].type, this.children[i].styles);
+        }
+        if (this.children[i].children.length > 0) {
+            this.children[i].getStyle(type);
+        }
     }
-    return result;
-} 
+}
 
-function viewStyleHierarchy(dom) {
-    for (let index = 0; index < dom.children.length; index++) {
-      console.log(dom.children[index].type, dom.children[index].styles);
-      var element = dom.children[index];
-      viewStyleHierarchy(element);
+DomElement.prototype.viewStyleHierarchy = function() {
+    for(let index = 0; index < this.children.length; index++) {
+        let element = this.children[index];
+        if(Object.keys(element.styles).length !== 0){
+            console.log("viewStyleHierarchy",element.type, element.styles);
+        }
+        element.viewStyleHierarchy();
     }
-  }
-  viewStyleHierarchy(dom);
+}
+//dom.addStyles(styles);
+//console.log(dom.toString());
+//dom.viewStyleHierarchy();
 
 /**************** PUNTO 2 ******************************/
 
@@ -320,6 +326,32 @@ off por su parte, desactiva el handler asociado a un evento.
 Se pide entonces que realice los cambios pertinentes para que los elementos
 del dom puedan tener este comportamiento.
 */
+
+DomElement.prototype.on = function(event, handler) {
+    this.events[event] = handler;
+}
+
+DomElement.prototype.off = function(event) {
+    delete this.events[event];
+}
+
+DomElement.prototype.handle = function(event) {
+    if (this.events[event]) {
+        this.events[event].call(this);
+    }
+    if (this.parent) {
+        this.parent.handle(event);
+    }
+}
+
+DomElement.prototype.events = {};
+
+dom.children[1].children[0].children[0].on('click', function() {
+    console.log('Se apretó click en un ' + this.type);
+    return true;
+})
+
+dom.children[1].children[0].children[0].handle('click');
 
 
 /**************** PUNTO 3 ******************************/
