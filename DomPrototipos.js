@@ -169,7 +169,7 @@ dom.children[1].children[0].children[0].styles = {
 };
 
 //console.log(' ')
-console.log(dom.toString());
+//console.log(dom.toString());
 
 /*
 Ahora vamos a empezar a realizar diversas acciones sobre etos
@@ -241,7 +241,10 @@ DomElement.prototype.addStyles = function(styles) {
     for(let index = 0; index < this.children.length; index++) {
         let element = this.children[index];
         element.styles = { ...element.styles, ...this.styles };
+        //let keys = Object.keys(styles);
+        //let values = Object.values(styles);
         if (styles[element.type] || styles[this.type + ' ' + element.type]) {
+            //console.log('print: ', estilos, this.styles);
             element.styles = {...element.styles,...styles[element.type]};
         }
         element.addStyles(styles);
@@ -268,9 +271,10 @@ DomElement.prototype.viewStyleHierarchy = function() {
         element.viewStyleHierarchy();
     }
 }
-dom.addStyles(styles);
+//dom.addStyles(styles);
 //console.log(dom.toString());
 //dom.viewStyleHierarchy();
+//dom.getStyle(styles);
 
 
 /**************** PUNTO 2 ******************************/
@@ -330,23 +334,27 @@ del dom puedan tener este comportamiento.
 */
 
 DomElement.prototype.on = function(event, handler) {
-    this.events[event] = handler;
+    if(this.eventsOff[event]) {
+        delete this.eventsOff[event];
+    }
+    this.eventsOn = { ...this.eventsOn, [event]:handler };
 }
 
 DomElement.prototype.off = function(event) {
-    delete this.events[event];
+    if(this.eventsOn[event]){   
+        this.eventsOff = {...this.eventsOff, [event]: this.eventsOn[event]};
+        delete this.eventsOn[event];
+    }
 }
 
 DomElement.prototype.handle = function(event) {
-    if (this.events[event]) {
-        this.events[event].call(this);
+    if (this.eventsOn[event]) {
+        this.eventsOn[event].call(this);
     }
-    if (this.parent) {
-        this.parent.handle(event);
+    if (this.__proto__.handle && this.__proto__.type !== 'html') {
+        this.__proto__.handle(event);
     }
 }
-
-DomElement.prototype.events = {};
 
 /*
 dom.children[1].children[0].children[0].on('click', function() {
@@ -438,4 +446,4 @@ DomElement.prototype.display = function() {
     }
 }
 
-dom.display();
+//dom.display();
