@@ -196,6 +196,9 @@ var styles = {
     },
     'aside h1': {
         size: 30
+    },
+    'p': {
+        color: 'white'
     }
 };
 
@@ -236,15 +239,12 @@ absolutamente todos los estilos, incluyendo los heredados, y
 no solo aquellos que tienen asociados.
 */
 
-
 DomElement.prototype.addStyles = function(styles) {
     for(let index = 0; index < this.children.length; index++) {
         let element = this.children[index];
         element.styles = { ...element.styles, ...this.styles };
-        //let keys = Object.keys(styles);
-        //let values = Object.values(styles);
-        if (styles[element.type] || styles[this.type + ' ' + element.type]) {
-            //console.log('print: ', estilos, this.styles);
+        let keys = Object.keys(styles).filter(key => key.includes(this.type));
+        if (keys.length > 0) {
             element.styles = {...element.styles,...styles[element.type]};
         }
         element.addStyles(styles);
@@ -271,8 +271,8 @@ DomElement.prototype.viewStyleHierarchy = function() {
         element.viewStyleHierarchy();
     }
 }
-//dom.addStyles(styles);
-//console.log(dom.toString());
+dom.addStyles(styles);
+console.log(dom.toString());
 //dom.viewStyleHierarchy();
 //dom.getStyle(styles);
 
