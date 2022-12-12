@@ -282,7 +282,7 @@ DomElement.prototype.viewStyleHierarchy = function() {
 dom.addStyles(styles);
 //console.log(dom.toString());
 //dom.viewStyleHierarchy();
-dom.getStyle('h1');
+dom.getStyle('h1'); 
 
 
 /**************** PUNTO 2 ******************************/
