@@ -252,13 +252,21 @@ DomElement.prototype.addStyles = function(styles) {
 }
 
 DomElement.prototype.getStyle = function(type) {
+    let propio = {};
+    let heredado = {};
     for (let i = 0; i < this.children.length; i++) {
-        if (this.children[i].type === type && Object.keys(this.children[i].styles).length !== 0) {
-            console.log(this.children[i].type, this.children[i].styles);
+        let raiz = this.__proto__;
+        if (this.children[i].type === type) {
+            for (element in this.children[i].styles) {
+                if (this.children[i].styles[element] !== raiz.styles[element]) {
+                    propio[element] = this.children[i].styles[element];
+                } else {
+                    heredado[element] = this.children[i].styles[element];
+                }
+            }
+            console.log("Tipo:", type, "Propio:",propio, "Heredado:", heredado);
         }
-        if (this.children[i].children.length > 0) {
             this.children[i].getStyle(type);
-        }
     }
 }
 
@@ -271,10 +279,10 @@ DomElement.prototype.viewStyleHierarchy = function() {
         element.viewStyleHierarchy();
     }
 }
-//dom.addStyles(styles);
+dom.addStyles(styles);
 //console.log(dom.toString());
 //dom.viewStyleHierarchy();
-//dom.getStyle(styles);
+dom.getStyle('h1');
 
 
 /**************** PUNTO 2 ******************************/
