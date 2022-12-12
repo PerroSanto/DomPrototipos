@@ -232,10 +232,10 @@ una definición de estilos que representa un css, asigna los estilos
 de esa definición a los correspondientes nodos del DOM.
 b) Luego implemente para todo nodo el método getFullStyle que
 describe todos los estilos que tiene un nodo (que incluyen los
-owns y los inheriteds).
+propios y los heredados).
 c) Implemente para todo nodo el método viewStyleHierarchy, que
 funciona de forma similar a toString, pero en donde se muestran
-absolutamente todos los estilos, incluyendo los inheriteds, y
+absolutamente todos los estilos, incluyendo los heredados, y
 no solo aquellos que tienen asociados.
 */
 
@@ -252,19 +252,19 @@ DomElement.prototype.addStyles = function(styles) {
 }
 
 DomElement.prototype.getStyle = function(type) {
-    let own = {};
-    let inherited = {};
+    let propio = {};
+    let heredado = {};
     for (let i = 0; i < this.children.length; i++) {
         let raiz = this.__proto__;
         if (this.children[i].type === type) {
             for (element in this.children[i].styles) {
                 if (this.children[i].styles[element] !== raiz.styles[element]) {
-                    own[element] = this.children[i].styles[element];
+                    propio[element] = this.children[i].styles[element];
                 } else {
-                    inherited[element] = this.children[i].styles[element];
+                    heredado[element] = this.children[i].styles[element];
                 }
             }
-            console.log("Tipo:", type, "Propio:",own, "Heredado:", inherited);
+            console.log("Tipo:", type, "Propio:",propio, "Heredado:", heredado);
         }
             this.children[i].getStyle(type);
     }
