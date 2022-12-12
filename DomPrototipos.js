@@ -271,8 +271,8 @@ DomElement.prototype.viewStyleHierarchy = function() {
         element.viewStyleHierarchy();
     }
 }
-dom.addStyles(styles);
-console.log(dom.toString());
+//dom.addStyles(styles);
+//console.log(dom.toString());
 //dom.viewStyleHierarchy();
 //dom.getStyle(styles);
 
